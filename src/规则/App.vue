@@ -516,10 +516,10 @@
         <button
           type="button"
           class="context-menu-item"
-          :disabled="isGenerating || isVariablePersistInProgress"
-          @click="handleRegenerateVariablesOnly"
+          disabled
+          title="暂时禁用"
         >
-          {{ isGenerating ? '⏳ 处理中...' : '🎲 单独重roll变量' }}
+          <span style="opacity: 0.5; text-decoration: line-through;">🎲 单独重roll变量（已禁用）</span>
         </button>
         <button
           type="button"
@@ -644,6 +644,10 @@
         <i class="fa-solid fa-circle-notch fa-spin"></i>
         <span class="opening-generating-text">正在生成开场白...</span>
         <span class="opening-generating-hint">AI 正在根据您的设定创作故事</span>
+        <button class="opening-generating-stop-btn" @click="stopOpeningGeneration">
+          <i class="fa-solid fa-stop"></i>
+          <span>停止生成</span>
+        </button>
       </div>
     </div>
 
@@ -815,11 +819,13 @@ const gamePhase = ref<GamePhase>(GamePhase.OPENING);
 const isInitializing = ref(false);
 const isStoreReady = ref(false); // store 数据是否就绪
 const isGeneratingOpening = ref(false); // 开场白生成中（显示加载弹窗）
+const openingGenerationId = ref<string>(''); // 开场白生成的唯一标识符，用于停止生成
 /** 标签确认后：写入楼层、MVU 解析、开局第二 API 等进行中；不挡正文，仅顶栏提示并禁止发送 */
 const isVariablePersistInProgress = ref(false);
 const isOpeningPhase = ref(false); // 标志当前是否处于开局流程（用于标签弹窗区分）
 const openingFormKey = ref(0);
 const isShaking = ref(false); // 震动动画状态 // 强制重置 OpeningForm（用于回退/失败后取消“开始游戏”转圈）
+const openingFormRef = ref<InstanceType<typeof import('./components/OpeningForm.vue').default> | null>(null);
 
 // 宿主会反复把同层 iframe 高度改成很小值（如 72px），需要在进入游戏阶段后兜底保持最小高度。
 let stopIframeHeightFix: (() => void) | null = null;
@@ -2682,6 +2688,28 @@ async function onTagDialogIgnore() {
   }
 }
 
+// 停止开局生成
+function stopOpeningGeneration() {
+  console.log('🛑 [App] 用户点击停止开局生成');
+  if (openingGenerationId.value) {
+    stopGenerationById(openingGenerationId.value);
+  } else {
+    stopAllGeneration();
+  }
+  // 重置状态
+  isGeneratingOpening.value = false;
+  isGenerating.value = false;
+  isInitializing.value = false;
+  isOpeningPhase.value = false;
+  openingGenerationId.value = '';
+  streamTextBuffer.value = '';
+  // 重置开局表单状态
+  if (openingFormRef.value) {
+    openingFormRef.value.resetSubmitState();
+  }
+  toastr.info('已停止生成');
+}
+
 // 处理标签验证弹窗 - 回退
 async function onTagDialogRollback() {
   console.log('⏮️ [App] 用户选择回退');
@@ -2707,6 +2735,7 @@ async function onTagDialogRollback() {
     lastGenerationDurationLabel.value = '';
     isTagDialogOpen.value = false;
     isGenerating.value = false;
+    isGeneratingOpening.value = false; // 确保重置开局生成状态，避免按钮一直转圈
     isInitializing.value = false;
     isOpeningPhase.value = false;
     showAiOutput.value = false;
@@ -2997,6 +3026,7 @@ async function handleOpeningSubmit(formData: OpeningFormData) {
       console.log('🎮 [App] 步骤3: 触发 AI 生成开场白...');
       isGenerating.value = true;
       isGeneratingOpening.value = true;
+      openingGenerationId.value = `opening-${Date.now()}`;
 
       const userPrompt = storyResult.promptContent || '';
       console.log('📝 [App] 发送给 AI 的提示词:', userPrompt.substring(0, 300) + '...');
@@ -3059,6 +3089,7 @@ async function handleOpeningSubmit(formData: OpeningFormData) {
       let result = await generate({
         user_input: userPrompt,
         should_stream: true,
+        generation_id: openingGenerationId.value,
       });
       console.log('✅ [App] generate 完成，结果长度:', result?.length || 0);
 
@@ -3835,6 +3866,17 @@ onUnmounted(() => {
       .opening-generating-hint {
         color: #71717a;
       }
+
+      .opening-generating-stop-btn {
+        color: #f87171;
+        background: rgba(248, 113, 113, 0.15);
+        border-color: rgba(248, 113, 113, 0.4);
+
+        &:hover {
+          background: rgba(248, 113, 113, 0.25);
+          border-color: rgba(248, 113, 113, 0.6);
+        }
+      }
     }
   }
 
@@ -3852,6 +3894,17 @@ onUnmounted(() => {
 
       .opening-generating-hint {
         color: #71717a;
+      }
+
+      .opening-generating-stop-btn {
+        color: #dc2626;
+        background: rgba(220, 38, 38, 0.1);
+        border-color: rgba(220, 38, 38, 0.3);
+
+        &:hover {
+          background: rgba(220, 38, 38, 0.2);
+          border-color: rgba(220, 38, 38, 0.5);
+        }
       }
     }
   }
@@ -3876,6 +3929,36 @@ onUnmounted(() => {
 
   .opening-generating-hint {
     font-size: 14px;
+  }
+
+  .opening-generating-stop-btn {
+    margin-top: 16px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.5);
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    i {
+      font-size: 14px;
+    }
   }
 }
 
