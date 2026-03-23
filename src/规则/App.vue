@@ -63,7 +63,10 @@
     <aside v-if="activeTab" class="middle-panel" :class="{ dark: isDarkMode, light: !isDarkMode }">
       <div class="panel-inner">
         <header class="panel-header">
-          <h1>{{ panelTitle }}</h1>
+          <h1>
+            {{ panelTitle }}
+            <span v-if="activeTab === 'settings'" class="version-badge">A</span>
+          </h1>
           <button class="close-btn" @click.stop="activeTab = null">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -3594,6 +3597,23 @@ onUnmounted(() => {
     font-size: calc(24px * var(--ui-scale, 1));
     font-weight: 300;
     letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: calc(8px * var(--ui-scale, 1));
+
+    .version-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: calc(12px * var(--ui-scale, 1));
+      font-weight: 600;
+      width: calc(20px * var(--ui-scale, 1));
+      height: calc(20px * var(--ui-scale, 1));
+      border-radius: 4px;
+      background: linear-gradient(135deg, #a855f7, #06b6d4);
+      color: #fff;
+      letter-spacing: 0;
+    }
   }
 
   .close-btn {
