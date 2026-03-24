@@ -22,7 +22,7 @@
       <div
         id="btn-edit-avatar"
         class="avatar-edit"
-        @click="!isEditingBasic && $emit('openModal', 'edit_avatar')"
+        @click="!isEditingBasic && $emit('openModal', 'edit_avatar', { characterId })"
       >
         <i class="fa-solid fa-user"></i>
         <div class="edit-overlay">
@@ -213,20 +213,45 @@
           <i class="fa-solid fa-shield-exclamation"></i>
           <h3>当前受影响规则</h3>
         </div>
-        <button id="btn-manage-rules" class="manage-btn" @click="$emit('openModal', 'manage_rules')">
+        <button id="btn-manage-rules" class="manage-btn" @click="$emit('openModal', 'manage_rules', manageRulesPayload())">
           管理规则影响
         </button>
       </div>
       <div class="rules-grid">
         <template v-if="affectedPersonalRules.length > 0">
-          <RuleCard
+          <div
             v-for="r in affectedPersonalRules"
             :key="r.id"
-            type="personal"
-            :title="r.title"
-            :desc="r.desc"
-            :active="r.status === 'active'"
-          />
+            class="personal-rule-row"
+          >
+            <div class="rule-desc">{{ r.desc || r.title }}</div>
+            <div class="rule-actions">
+              <button
+                type="button"
+                class="action edit"
+                title="编辑"
+                @click="$emit('openModal', 'edit_personal_rule', personalRulePayload(r))"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button
+                type="button"
+                class="action archive"
+                title="归档"
+                @click="onArchivePersonalRule(r)"
+              >
+                <i class="fa-solid fa-archive"></i>
+              </button>
+              <button
+                type="button"
+                class="action delete"
+                title="删除"
+                @click="$emit('openModal', 'delete_personal_rule', personalRulePayload(r))"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
         </template>
         <template v-else>
           <div class="empty-hint">暂无个人规则影响</div>
@@ -242,8 +267,8 @@ import type { CharacterData, RuleData } from '../types';
 import StatRow from './StatRow.vue';
 import StatBar from './StatBar.vue';
 import Badge from './Badge.vue';
-import RuleCard from './RuleCard.vue';
 import { useCharacters, usePersonalRules } from '../store';
+import { submitArchivePersonalRule } from '../utils/dialogAndVariable';
 
 const props = defineProps<{
   characterId: string;
@@ -325,10 +350,26 @@ const displayPhysiologicalDesc = computed(() => {
 });
 const characterStatusText = ref('出场中');
 
+const allPersonalRules = usePersonalRules();
+
+function refreshAffectedPersonalRulesForCharacter(characterNameForMatch: string) {
+  try {
+    const idMatch = props.characterId;
+    const nameMatch = characterNameForMatch;
+    affectedPersonalRules.value = (allPersonalRules.value || []).filter((r: any) => {
+      const t = r?.target;
+      if (!t) return false;
+      return t === idMatch || t === nameMatch;
+    });
+  } catch (e) {
+    console.warn('加载个人规则失败', e);
+    affectedPersonalRules.value = [];
+  }
+}
+
 onMounted(() => {
   try {
     const characters = useCharacters();
-    const allPersonalRules = usePersonalRules();
 
     // 使用 watch 监听数据变化
     const unwatch = watch(characters, (list) => {
@@ -364,19 +405,7 @@ onMounted(() => {
       };
       characterStatusText.value = (current as any).status === 'active' ? '出场中' : '暂时退场';
 
-      // 受影响规则：从个人规则中匹配
-      try {
-        const idMatch = props.characterId;
-        const nameMatch = current.name;
-        affectedPersonalRules.value = (allPersonalRules.value || []).filter((r: any) => {
-          const t = r?.target;
-          if (!t) return false;
-          return t === idMatch || t === nameMatch;
-        });
-      } catch (e) {
-        console.warn('加载个人规则失败', e);
-        affectedPersonalRules.value = [];
-      }
+      refreshAffectedPersonalRulesForCharacter(String(current.name ?? ''));
 
       editForm.value = { ...savedForm.value };
 
@@ -389,6 +418,48 @@ onMounted(() => {
     console.warn('加载角色数据失败', e);
   }
 });
+
+// 与个人规则管理一致：变量变更后刷新本角色受影响列表（编辑/归档后）
+watch(
+  allPersonalRules,
+  () => {
+    refreshAffectedPersonalRulesForCharacter(String(name.value || ''));
+  },
+  { deep: true },
+);
+
+/** 与「个人规则管理」分组 key 一致，用于跳转并展开对应折叠组 */
+function manageRulesPayload(): Record<string, any> {
+  const first = affectedPersonalRules.value[0];
+  const expandGroupName = (first?.target && String(first.target)) || name.value || props.characterId;
+  return {
+    characterId: props.characterId,
+    characterName: name.value,
+    expandGroupName,
+  };
+}
+
+/** 与个人规则管理面板 PersonalRulesPanel.rulePayload 一致，供编辑/删除弹窗使用 */
+function personalRulePayload(rule: RuleData): Record<string, any> {
+  const groupName = rule.target || name.value || props.characterId;
+  return {
+    id: rule.id,
+    title: rule.title,
+    character: groupName,
+    desc: rule.desc,
+  };
+}
+
+function ruleSummary(rule: RuleData): string {
+  if (rule.title && rule.title !== (rule as any).target) return rule.title;
+  const d = (rule.desc || '').trim();
+  return d.length > 40 ? d.slice(0, 40) + '…' : d || '（无描述）';
+}
+
+async function onArchivePersonalRule(rule: RuleData) {
+  const groupName = rule.target || name.value || props.characterId;
+  await submitArchivePersonalRule(rule.id, groupName, ruleSummary(rule));
+}
 
 function startEditBasic() {
   editForm.value = { ...savedForm.value };
@@ -922,12 +993,85 @@ const emit = defineEmits<{
 }
 
 .rules-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
+.personal-rule-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .rule-desc {
+    font-size: 13px;
+    color: #a1a1aa;
+    flex: 1;
+    margin-right: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rule-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+
+    .action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 12px;
+
+      &.edit {
+        color: #60a5fa;
+        background: rgba(96, 165, 250, 0.1);
+
+        &:hover {
+          background: rgba(96, 165, 250, 0.2);
+        }
+      }
+
+      &.archive {
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+
+        &:hover {
+          background: rgba(245, 158, 11, 0.2);
+        }
+      }
+
+      &.delete {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.2);
+        }
+      }
+    }
+  }
+}
+
+:global(.light) .personal-rule-row {
+  border-color: rgba(0, 0, 0, 0.05);
+
+  .rule-desc {
+    color: #71717a;
   }
 }
 </style>

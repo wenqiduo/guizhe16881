@@ -128,6 +128,11 @@ export function updateCharacterInVariables(characterId: string, updates: Partial
 
   if (updates.name != null) char.姓名 = updates.name;
   if (updates.description != null) char.描写 = updates.description;
+  if (updates.avatar != null) {
+    const u = String(updates.avatar).trim();
+    (char as Record<string, unknown>).头像链接 = u;
+    (char as Record<string, unknown>).avatar = u;
+  }
 
   if (updates.basic) {
     const b = updates.basic;
@@ -174,6 +179,20 @@ export async function submitEditCharacterBasic(
       stats: Object.keys(stats).length ? (stats as Record<string, number>) : undefined,
     } as Partial<CharacterData>,
   );
+  return message;
+}
+
+/** 编辑角色头像（写入角色档案中的头像链接，供界面扩展使用；支持 http(s) 与本地 Data URL） */
+export async function submitEditCharacterAvatar(characterId: string, avatarUrl: string): Promise<string> {
+  const u = String(avatarUrl ?? '').trim();
+  const linkSummary =
+    !u
+      ? '（清空）'
+      : u.startsWith('data:image/')
+        ? '（本地图片，已压缩编码并写入变量）'
+        : u;
+  const message = `[编辑角色头像]\n角色ID：${characterId}\n头像：${linkSummary}`;
+  updateCharacterInVariables(characterId, { avatar: u });
   return message;
 }
 

@@ -114,13 +114,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import type { RuleData } from '../types';
 import { usePersonalRulesByCharacter } from '../store';
 import { submitArchivePersonalRule, submitRestorePersonalRule } from '../utils/dialogAndVariable';
 
+const props = defineProps<{
+  /** 从角色详情「管理规则影响」跳转时要展开的分组名（与 rule.target 一致） */
+  expandGroupName?: string | null;
+}>();
+
 const emit = defineEmits<{
   (e: 'openModal', type: string, payload?: Record<string, any>): void;
+  (e: 'expandGroupConsumed'): void;
 }>();
 
 const isLoading = ref(true);
@@ -167,6 +173,35 @@ function toggleGroup(name: string) {
   else next.add(name);
   expandedGroups.value = next;
 }
+
+let expandFailSafeTimer: ReturnType<typeof setTimeout> | null = null;
+
+watch(
+  [() => props.expandGroupName, grouped],
+  () => {
+    const n = props.expandGroupName?.trim();
+    if (!n) return;
+    if (expandFailSafeTimer) {
+      clearTimeout(expandFailSafeTimer);
+      expandFailSafeTimer = null;
+    }
+    nextTick(() => {
+      const names = grouped.value.map((g) => g.groupName);
+      if (names.includes(n)) {
+        const next = new Set(expandedGroups.value);
+        next.add(n);
+        expandedGroups.value = next;
+        emit('expandGroupConsumed');
+        return;
+      }
+      expandFailSafeTimer = setTimeout(() => {
+        expandFailSafeTimer = null;
+        emit('expandGroupConsumed');
+      }, 1200);
+    });
+  },
+  { deep: true },
+);
 
 async function onArchive(rule: RuleData, groupName: string) {
   await submitArchivePersonalRule(rule.id, groupName, ruleSummary(rule));

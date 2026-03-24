@@ -103,7 +103,12 @@
               />
               <WorldRulesPanel v-else-if="activeTab === 'world_rules'" @open-modal="openModal" />
               <RegionalRulesPanel v-else-if="activeTab === 'regional_rules'" @open-modal="openModal" />
-              <PersonalRulesPanel v-else-if="activeTab === 'personal_rules'" @open-modal="openModal" />
+              <PersonalRulesPanel
+                v-else-if="activeTab === 'personal_rules'"
+                :expand-group-name="personalRulesExpandGroup"
+                @expand-group-consumed="personalRulesExpandGroup = null"
+                @open-modal="openModal"
+              />
               <SettingsPanel
                 v-else-if="activeTab === 'settings'"
                 :is-dark-mode="isDarkMode"
@@ -509,6 +514,45 @@
                 placeholder="输入隐藏性癖描述..."
               />
             </div>
+            <div v-else-if="modalType === 'edit_avatar'" class="rule-form edit-avatar-form">
+              <label class="form-label">本地上传</label>
+              <input
+                ref="avatarFileInputRef"
+                type="file"
+                accept="image/*"
+                class="avatar-file-input"
+                @change="onAvatarFileSelected"
+              />
+              <div class="avatar-upload-actions">
+                <button type="button" class="btn-secondary" @click="triggerAvatarFilePick">
+                  <i class="fa-solid fa-upload"></i>
+                  <span>选择本地图片</span>
+                </button>
+                <button
+                  v-if="modalForm.avatarUrl"
+                  type="button"
+                  class="btn-secondary avatar-clear-btn"
+                  @click="modalForm.avatarUrl = ''"
+                >
+                  清除
+                </button>
+              </div>
+              <p class="avatar-upload-hint">
+                支持常见图片格式，原图建议小于 12MB；将自动缩放（长边约 512px 以内）并优先转为 WebP / JPEG 后再保存（与 URL 二选一即可）
+              </p>
+
+              <label class="form-label">或填写图片 URL</label>
+              <input
+                v-model="modalForm.avatarUrl"
+                type="text"
+                class="form-input"
+                placeholder="粘贴图片链接（留空则清空头像）"
+              />
+
+              <div v-if="isAvatarPreviewable(modalForm.avatarUrl)" class="avatar-edit-preview">
+                <img :src="modalForm.avatarUrl" alt="头像预览" />
+              </div>
+            </div>
             <div v-else class="modal-placeholder">
               <p>未配置的弹窗类型：<code>{{ modalType }}</code></p>
             </div>
@@ -897,9 +941,13 @@ let lastIframeMinHeightApplied: number | null = null;
 
 // 界面状态
 const activeTab = ref<string | null>(null);
+/** 打开个人规则面板时要展开的分组名（与 rule.target / 角色名一致）；由子组件消费后清空 */
+const personalRulesExpandGroup = ref<string | null>(null);
 const isModalOpen = ref(false);
 const modalType = ref('');
 const modalPayload = ref<Record<string, any> | null>(null);
+/** 编辑头像弹窗内隐藏的 file input */
+const avatarFileInputRef = ref<HTMLInputElement | null>(null);
 const isDarkMode = ref(true);
 
 // MVU 缺失提示弹窗
@@ -967,6 +1015,7 @@ const modalForm = ref({
   characterPsychFetishes: '',
   characterPsychSensitiveParts: '',
   characterPsychHiddenFetish: '',
+  avatarUrl: '',
 });
 
 // 同层界面状态
@@ -1161,6 +1210,7 @@ const variableFabStyle = computed(() => ({
 // 调试：监听 activeTab 的变化
 watch(activeTab, (newVal, oldVal) => {
   console.log(`[调试] activeTab 变化: ${oldVal} -> ${newVal}`);
+  if (newVal !== 'personal_rules') personalRulesExpandGroup.value = null;
 }, { immediate: true });
 
 watch(
@@ -1313,6 +1363,7 @@ const modalTitles: Record<string, string> = {
   edit_personal_rule: '编辑个人规则',
   edit_character_mind: '编辑心理状态',
   edit_character_fetish: '编辑性癖与敏感带',
+  edit_avatar: '编辑角色头像',
 };
 const modalTitle = computed(() => modalTitles[modalType.value] || (modalType.value.includes('add') ? '新增条目' : '编辑条目'));
 
@@ -1336,6 +1387,17 @@ function toggleTab(tabId: string) {
 }
 
 async function openModal(type: string, payload?: Record<string, any>) {
+  if (type === 'manage_rules') {
+    activeTab.value = 'personal_rules';
+    personalRulesExpandGroup.value =
+      (payload?.expandGroupName && String(payload.expandGroupName).trim()) ||
+      (payload?.characterName && String(payload.characterName).trim()) ||
+      (payload?.characterId && String(payload.characterId).trim()) ||
+      null;
+    toastr.info('已切换到个人规则管理');
+    return;
+  }
+
   // 删除/归档类：直接执行并关闭，不弹窗
   if (type === 'delete_world_rule' && payload?.title) {
     try {
@@ -1389,7 +1451,18 @@ async function openModal(type: string, payload?: Record<string, any>) {
     characterPsychFetishes: '',
     characterPsychSensitiveParts: '',
     characterPsychHiddenFetish: '',
+    avatarUrl: '',
   };
+
+  if (type === 'edit_avatar' && payload?.characterId) {
+    try {
+      const store = useDataStore();
+      const raw = store.data.角色档案?.[payload.characterId] as Record<string, unknown> | undefined;
+      modalForm.value.avatarUrl = String(raw?.头像链接 ?? raw?.avatar ?? '');
+    } catch (e) {
+      console.warn('预填头像链接失败', e);
+    }
+  }
 
   if ((type === 'edit_character_mind' || type === 'edit_character_fetish') && payload?.characterId) {
     try {
@@ -1413,6 +1486,48 @@ async function openModal(type: string, payload?: Record<string, any>) {
 function closeModal() {
   isModalOpen.value = false;
   modalPayload.value = null;
+}
+
+function isAvatarPreviewable(url: string): boolean {
+  const u = String(url ?? '').trim();
+  if (!u) return false;
+  return u.startsWith('data:image/') || /^https?:\/\//i.test(u) || u.startsWith('blob:');
+}
+
+function triggerAvatarFilePick() {
+  avatarFileInputRef.value?.click();
+}
+
+async function onAvatarFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    toastr.warning('请选择图片文件');
+    input.value = '';
+    return;
+  }
+  const maxRawBytes = 12 * 1024 * 1024;
+  if (file.size > maxRawBytes) {
+    toastr.warning('原图请小于 12MB');
+    input.value = '';
+    return;
+  }
+  input.value = '';
+  try {
+    const { compressImageFileToDataUrl } = await import('./utils/imageCompress');
+    const dataUrl = await compressImageFileToDataUrl(file, {
+      maxEdgePx: 512,
+      maxOutputBytes: 220 * 1024,
+    });
+    modalForm.value.avatarUrl = dataUrl;
+    const approxKb = Math.round((dataUrl.length * 3) / 4 / 1024);
+    const kind = dataUrl.startsWith('data:image/webp') ? 'WebP' : dataUrl.startsWith('data:image/jpeg') ? 'JPEG' : '图片';
+    toastr.success(`已压缩为 ${kind}（约 ${approxKb} KB）`);
+  } catch (e) {
+    console.error('压缩头像失败', e);
+    toastr.error('处理图片失败，请换一张重试');
+  }
 }
 
 /**
@@ -1498,6 +1613,9 @@ async function onModalComplete() {
         sensitivePartsText: form.characterPsychSensitiveParts,
         hiddenFetish: form.characterPsychHiddenFetish,
       });
+    } else if (type === 'edit_avatar' && payload?.characterId) {
+      const { submitEditCharacterAvatar } = await import('./utils/dialogAndVariable');
+      messageText = await submitEditCharacterAvatar(payload.characterId, form.avatarUrl);
     } else {
       toastr.warning('未知的弹窗类型或缺少数据');
       return;
@@ -6115,6 +6233,50 @@ body.has-dragging-fab {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.avatar-file-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.avatar-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.avatar-upload-hint {
+  margin: -4px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #71717a;
+}
+
+.dark .avatar-upload-hint {
+  color: #a1a1aa;
+}
+
+.avatar-edit-preview {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 0;
+}
+
+.avatar-edit-preview img {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.light .avatar-edit-preview img {
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 .form-label {
