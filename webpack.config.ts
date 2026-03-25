@@ -22,23 +22,31 @@ const HTMLInlineCSSWebpackPlugin = require('html-inline-css-webpack-plugin').def
 
 const WEBPACK_ROOT = import.meta.dirname;
 
-/** 供前端显示：优先 CI 环境变量，否则 git describe，再否则短 commit，最后 dev */
+/** 供前端角标：优先展示 Git 标签（git describe），避免用分支名 master/main 盖住 tag */
 function getBuildVersion(): string {
-  const envRef =
-    process.env.GITHUB_REF_NAME?.trim() ||
-    process.env.CI_COMMIT_SHORT_SHA?.trim() ||
-    process.env.GIT_COMMIT_SHORT?.trim();
-  if (envRef) {
-    return envRef.length > 48 ? `${envRef.slice(0, 45)}…` : envRef;
+  try {
+    const desc = execSync('git describe --tags --always --dirty', {
+      encoding: 'utf8',
+      cwd: WEBPACK_ROOT,
+    }).trim();
+    if (desc) {
+      return desc;
+    }
+  } catch {
+    /* 无 .git 或非仓库目录时走下面 */
+  }
+  const shortSha = process.env.CI_COMMIT_SHORT_SHA?.trim() || process.env.GIT_COMMIT_SHORT?.trim();
+  if (shortSha) {
+    return shortSha.length > 12 ? `${shortSha.slice(0, 12)}…` : shortSha;
+  }
+  const ref = process.env.GITHUB_REF_NAME?.trim();
+  if (ref && ref !== 'master' && ref !== 'main') {
+    return ref.length > 48 ? `${ref.slice(0, 45)}…` : ref;
   }
   try {
-    return execSync('git describe --tags --always --dirty', { encoding: 'utf8', cwd: WEBPACK_ROOT }).trim();
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8', cwd: WEBPACK_ROOT }).trim();
   } catch {
-    try {
-      return execSync('git rev-parse --short HEAD', { encoding: 'utf8', cwd: WEBPACK_ROOT }).trim();
-    } catch {
-      return 'dev';
-    }
+    return 'dev';
   }
 }
 
