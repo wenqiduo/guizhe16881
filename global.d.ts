@@ -39,3 +39,17 @@ declare namespace z {
 declare module 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js' {
   export function registerMvuSchema(schema: z.ZodType<Record<string, any>> | (() => z.ZodType<Record<string, any>>)): void;
 }
+
+/** 小手机壳脚本（src/小手机壳）挂载到酒馆页面，供主界面等 iframe 通过 window.parent 调用 */
+interface TavernPhoneApi {
+  readonly version: string;
+  readonly isOpen: boolean;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+  getIframeWindow: () => Window | null;
+}
+
+interface Window {
+  TavernPhone?: TavernPhoneApi;
+}

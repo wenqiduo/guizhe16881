@@ -1,0 +1,5 @@
+{
+  "name": "iOS Simulator",
+  "description": "A web-based iOS-like interface with simulated apps including Forum, News, WeChat, Diary, Moments, and Settings.",
+  "requestFramePermissions": []
+}
