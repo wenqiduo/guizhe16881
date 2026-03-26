@@ -895,18 +895,19 @@ const sceneOptions = [
 
 // 预设规则
 const presetRules = [
-  { id: 'rule_001', name: '感官放大法则', desc: '所有处于发情状态的个体，其痛觉将转化为快感，触觉敏感度提升三倍' },
-  { id: 'rule_002', name: '绝对服从契约', desc: '下级必须无条件服从上级的直接命令，即使违背常理' },
-  { id: 'rule_003', name: '强制发情期', desc: '每个月的第一天，所有成年人都会进入无法抑制的发情状态' },
-  { id: 'rule_004', name: '禁止隐私', desc: '所有人的思想可以被他人读取，谎言将无所遁形' },
-  { id: 'rule_005', name: '猫娘语癖', desc: '所有女性说话最后一个字必须用喵结尾' },
+  { id: 'rule_001', name: '下克上', desc: '上级会无条件的听从下级的指令' },
+  { id: 'rule_002', name: '喵喵口癖', desc: '所有女性说话都会以喵结尾。' },
+  { id: 'rule_003', name: '真空', desc: '所有人都真空，不穿任何内衣内裤。' },
+  { id: 'rule_004', name: '裸足', desc: '所有人都会保持裸足，同时足部不会弄脏。' },
+  { id: 'rule_005', name: '反差', desc: '每个人都会有一个反差极大的隐藏性癖' },
+  { id: 'rule_006', name: '敏感强化', desc: '所有人的敏感度都会提升三倍。' },
 ];
 
 // 数据
 const selectedScene = ref<typeof sceneOptions[0] | null>(null);
 const customSceneDesc = ref('');
 const openingSceneDetail = ref('');
-const selectedRules = ref<string[]>(['rule_001', 'rule_002']); // 默认选中
+const selectedRules = ref<string[]>(['rule_001', 'rule_002']); // 默认选中前两条
 const customRules = ref<{ name: string; desc: string }[]>([]);
 const characters = ref<{ name: string; gender: string; desc: string }[]>([]);
 
