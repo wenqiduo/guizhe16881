@@ -21,8 +21,8 @@ npm run dev
   若只想打 webpack、不构建手机，用：**`pnpm run build:webpack`**。  
   若只构建手机：**`pnpm build:phone`**。
 
-**调试（F5）时：** `.vscode` 里「开始任务」会并行启动 **`pnpm watch`**（webpack）与 **`pnpm run watch:phone`**（`vite build --watch`，产物在 **`src/手机/dist`**）。  
-若 `phone_ui_url` 指向 **`dist/手机`**，保存后需再执行一次 **`pnpm build:phone`** 同步，或开发时把静态服务根目录指到 **`src/手机/dist`**。
+**调试（F5）时：** `.vscode`「开始任务」与仓库根 **`pnpm watch`** 会并行：**webpack 监听**（规则、小手机壳等）+ **`watch:phone`**（Vite 监听 `src/手机`，并在每次构建后 **自动同步到 `dist/手机`**）。  
+因此 `phone_ui_url` 指向本地 **`http://…/dist/手机/index.html`**（如 Live Server）时，保存 `src/手机` 源码后会自动更新，一般只需刷新酒馆 iframe。若只要 webpack、不要手机监听，用 **`pnpm run watch:webpack`**。
 
 **仅构建在子目录：**
 

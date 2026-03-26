@@ -5,8 +5,6 @@
  * 脚本变量（type: script）可配置：
  * - phone_ui_url / tavern_phone_ui_url: 手机界面 index.html 的完整 URL（必填才能显示内容）
  */
-import { createScriptIdDiv } from '../../util/script';
-
 const VERSION = '1.0.0';
 const PHONE_W = 375;
 const PHONE_H = 812;
@@ -55,6 +53,42 @@ $(() => {
   let isOpen = false;
   let messageHandler: ((e: MessageEvent) => void) | null = null;
   let resizeHandler: (() => void) | null = null;
+  /** 与 buildDom 里绑定 resize 的窗口一致，便于 removeDom 卸载 */
+  let resizeTargetWindow: Window | null = null;
+  let visualViewportRef: VisualViewport | null = null;
+
+  /**
+   * 遮罩与手机挂在「能看见整页」的窗口 document 上。
+   * 脚本常在嵌套 iframe 里：仅用 parent 可能仍是小 iframe；优先 top（同源），再 parent，再自身。
+   */
+  function getShellDocument(): Document {
+    try {
+      const topWin = window.top;
+      if (topWin && topWin !== window && topWin.document?.body) {
+        return topWin.document;
+      }
+    } catch {
+      /* 跨域 top */
+    }
+    try {
+      if (window.parent !== window && window.parent.document?.body) {
+        return window.parent.document;
+      }
+    } catch {
+      /* 跨域 parent */
+    }
+    return document;
+  }
+
+  function getShellWindow(): Window {
+    return getShellDocument().defaultView ?? window;
+  }
+
+  function createShellDiv(doc: Document): JQuery<HTMLDivElement> {
+    const el = doc.createElement('div');
+    el.setAttribute('script_id', getScriptId());
+    return $(el) as JQuery<HTMLDivElement>;
+  }
 
   function getIframeEl(): HTMLIFrameElement | null {
     return $iframe?.[0] ?? null;
@@ -64,8 +98,10 @@ $(() => {
     if (!$phoneRoot?.length) {
       return;
     }
-    const vw = window.parent.innerWidth;
-    const vh = window.parent.innerHeight;
+    const win = getShellWindow();
+    const vv = win.visualViewport;
+    const vw = vv?.width ?? win.innerWidth;
+    const vh = vv?.height ?? win.innerHeight;
     const marginX = 32;
     const marginY = 48;
     const scale = Math.min((vw - marginX) / PHONE_W, (vh - marginY) / PHONE_H, 1);
@@ -91,8 +127,16 @@ $(() => {
     $phoneRoot = null;
     $iframe = null;
     if (resizeHandler) {
-      $(window.parent).off('resize', resizeHandler);
+      if (visualViewportRef) {
+        visualViewportRef.removeEventListener('resize', resizeHandler);
+        visualViewportRef.removeEventListener('scroll', resizeHandler);
+        visualViewportRef = null;
+      }
+      if (resizeTargetWindow) {
+        $(resizeTargetWindow).off('resize', resizeHandler);
+      }
       resizeHandler = null;
+      resizeTargetWindow = null;
     }
   }
 
@@ -101,7 +145,10 @@ $(() => {
       return;
     }
 
-    $overlay = createScriptIdDiv()
+    const parentDoc = getShellDocument();
+    const $mount = $(parentDoc.body);
+
+    $overlay = createShellDiv(parentDoc)
       .attr('data-tavern-phone', 'overlay')
       .css({
         position: 'fixed',
@@ -112,43 +159,47 @@ $(() => {
         display: 'none',
         pointerEvents: 'auto',
       })
-      .appendTo('body');
+      .appendTo($mount);
 
-    $phoneRoot = createScriptIdDiv()
+    $phoneRoot = createShellDiv(parentDoc)
       .attr('data-tavern-phone', 'root')
       .css({
         position: 'fixed',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: Z_PHONE,
+        inset: '0',
+        boxSizing: 'border-box',
         display: 'none',
-        pointerEvents: 'auto',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: Z_PHONE,
+        pointerEvents: 'none',
+        margin: 0,
+        padding: 0,
       })
-      .appendTo('body');
+      .appendTo($mount);
 
-    const $inner = createScriptIdDiv()
+    const $inner = createShellDiv(parentDoc)
       .attr('data-tavern-phone', 'inner')
       .css({
+        flexShrink: 0,
         borderRadius: '55px',
         overflow: 'hidden',
         boxShadow: '0 24px 40px rgba(0,0,0,0.5)',
         background: '#000',
+        pointerEvents: 'auto',
       });
 
-    $iframe = $(`<iframe>`)
-      .attr({
-        title: 'Tavern Phone',
-        frameborder: '0',
-        allow: 'clipboard-read; clipboard-write',
-      })
-      .css({
-        display: 'block',
-        width: PHONE_W + 'px',
-        height: PHONE_H + 'px',
-        border: 'none',
-        background: '#000',
-      }) as JQuery<HTMLIFrameElement>;
+    const iframeEl = parentDoc.createElement('iframe');
+    iframeEl.title = 'Tavern Phone';
+    iframeEl.setAttribute('frameborder', '0');
+    iframeEl.setAttribute('allow', 'clipboard-read; clipboard-write');
+    $iframe = $(iframeEl).css({
+      display: 'block',
+      width: PHONE_W + 'px',
+      height: PHONE_H + 'px',
+      border: 'none',
+      background: '#000',
+    }) as JQuery<HTMLIFrameElement>;
 
     $inner.append($iframe);
     $phoneRoot.append($inner);
@@ -165,12 +216,20 @@ $(() => {
       postToPhone({ type: MSG.OPENED });
     });
 
+    const layoutWin = getShellWindow();
+    resizeTargetWindow = layoutWin;
     resizeHandler = () => {
       if (isOpen) {
         applyLayout();
       }
     };
-    $(window.parent).on('resize', resizeHandler);
+    $(layoutWin).on('resize', resizeHandler);
+    const vv = layoutWin.visualViewport;
+    if (vv) {
+      visualViewportRef = vv;
+      vv.addEventListener('resize', resizeHandler);
+      vv.addEventListener('scroll', resizeHandler);
+    }
 
     applyLayout();
   }
@@ -208,7 +267,7 @@ $(() => {
     setIframeSrc();
 
     $overlay?.css('display', 'block');
-    $phoneRoot?.css('display', 'block');
+    $phoneRoot?.css('display', 'flex');
     isOpen = true;
     applyLayout();
   }

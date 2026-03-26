@@ -76,10 +76,7 @@
     },
     {
       "label": "开始任务",
-      "dependsOn": [
-        "开始监听源代码并编译",
-        "开始监听手机界面 (Vite)"
-      ],
+      "dependsOn": ["开始监听源代码并编译"],
       "dependsOrder": "parallel"
     },
     {

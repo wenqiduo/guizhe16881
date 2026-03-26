@@ -17,7 +17,7 @@
 
 本地调试 `phone_ui_url` 时，可用 Live Server 打开 **`dist/手机`** 目录，例如 `http://127.0.0.1:5500/index.html`（端口以实际为准）。
 
-开发时可在仓库根目录并行运行 **`pnpm watch`**（webpack 壳脚本等）与 **`pnpm watch:phone`**（Vite 监听 `src/手机`，产物在 **`src/手机/dist`**）。同步到仓库根 **`dist/手机`** 仅在执行 **`pnpm build:phone`** 或完整 **`pnpm build`** 时由 `sync-phone-dist` 完成；若 `phone_ui_url` 指向 `dist/手机`，手机代码变更后需再跑一次 **`pnpm build:phone`**，或把本地服务根目录指到 **`src/手机/dist`**。配合酒馆助手实时监听壳脚本时，改壳代码可热重载。
+开发时在仓库根目录执行 **`pnpm watch`** 即可同时监听 webpack 与 **`src/手机`**，且 **`watch:phone`** 会在 Vite 产出后自动执行 **`sync-phone-dist`**，更新 **`dist/手机`**（与 **`pnpm build:phone`** 同步方式一致）。`phone_ui_url` 指向本地 **`dist/手机/index.html`** 时，改手机源码后刷新 iframe 即可看到变化。若只要 webpack，用 **`pnpm run watch:webpack`**；若只编手机、不要 webpack，用 **`pnpm run watch:phone`**。
 
 ## 壳与 iframe 尺寸
 
