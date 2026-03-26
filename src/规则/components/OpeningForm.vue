@@ -1737,6 +1737,9 @@ defineExpose({
   position: relative;
   z-index: 10;
   align-items: center;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 // 系统状态面板（左侧）
@@ -1814,6 +1817,11 @@ defineExpose({
   align-items: center;
   justify-content: center;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0 6px;
 
   .glow-border {
     position: absolute;
@@ -1829,8 +1837,12 @@ defineExpose({
 
   .center-card {
     position: relative;
-    width: 380px;
-    height: 420px;
+    // 必须可随窄屏收缩；勿用固定 380px（会覆盖媒体查询里单独的 .center-card）
+    width: min(100%, 380px);
+    max-width: 100%;
+    min-height: 320px;
+    height: auto;
+    box-sizing: border-box;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
@@ -1857,6 +1869,13 @@ defineExpose({
     .card-content {
       text-align: center;
       z-index: 1;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      padding: 0 4px;
+      box-sizing: border-box;
+      word-break: break-word;
+      overflow-wrap: anywhere;
 
       .book-icon-wrapper {
         position: relative;
@@ -1906,6 +1925,12 @@ defineExpose({
   .start-btn-wrapper {
     position: relative;
     margin-top: 40px;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0 4px;
 
     .btn-pulse-ring {
       position: absolute;
@@ -1921,7 +1946,9 @@ defineExpose({
       position: relative;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 12px;
+      max-width: min(100%, 320px);
       padding: 16px 40px;
       border-radius: 50px;
       font-size: 16px;
@@ -1930,6 +1957,7 @@ defineExpose({
       border: 1px solid rgba(168, 85, 247, 0.3);
       background: rgba(0, 0, 0, 0.4);
       transition: all 0.3s;
+      box-sizing: border-box;
 
       &:hover {
         border-color: rgba(168, 85, 247, 0.6);
@@ -2041,9 +2069,18 @@ defineExpose({
 .bottom-tools {
   grid-column: 1 / -1;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
+  align-items: center;
+  align-content: center;
+  gap: 12px 10px;
   margin-top: auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 6px 4px;
+  position: relative;
+  z-index: 12;
 
   .tool-btn {
     display: inline-flex;
@@ -2057,6 +2094,11 @@ defineExpose({
     background: rgba(255, 255, 255, 0.03);
     transition: all 0.3s;
     color: rgba(255, 255, 255, 0.7);
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
 
     &:hover {
       background: rgba(255, 255, 255, 0.08);
@@ -2156,15 +2198,12 @@ defineExpose({
   position: relative;
   width: 100%;
   min-height: 690px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
-.cover-page {
-  display: grid;
-  place-items: center;
-  padding: 64px 48px;
-  text-align: center;
-}
+// 与上方 .cover-page 合并：勿再写第二段 .cover-page，否则会打乱响应式 padding
 
 .book-cover {
   width: 100%;
@@ -3628,9 +3667,10 @@ defineExpose({
     padding: 40px 32px 32px;
   }
 
-  .center-card {
-    width: 340px;
-    height: 380px;
+  .center-card-wrapper .center-card {
+    width: min(100%, 340px);
+    height: auto;
+    min-height: 360px;
 
     .card-content {
       .book-icon {
@@ -3658,9 +3698,10 @@ defineExpose({
     padding: 36px 28px 28px;
   }
 
-  .center-card {
-    width: 320px;
-    height: 360px;
+  .center-card-wrapper .center-card {
+    width: min(100%, 320px);
+    height: auto;
+    min-height: 340px;
 
     .card-content {
       .book-icon-wrapper {
@@ -3686,7 +3727,7 @@ defineExpose({
     }
   }
 
-  .start-btn-wrapper {
+  .center-card-wrapper .start-btn-wrapper {
     margin-top: 32px;
 
     .start-btn {
@@ -3733,11 +3774,11 @@ defineExpose({
     order: 1;
   }
 
-  .center-card {
+  .center-card-wrapper .center-card {
     width: 100%;
     max-width: 400px;
     height: auto;
-    min-height: 320px;
+    min-height: 300px;
     padding: 40px 24px;
 
     .card-content {
@@ -3764,7 +3805,7 @@ defineExpose({
     }
   }
 
-  .start-btn-wrapper {
+  .center-card-wrapper .start-btn-wrapper {
     order: 2;
     margin-top: 24px;
 
@@ -3817,8 +3858,8 @@ defineExpose({
     padding: 24px 16px 16px;
   }
 
-  .center-card {
-    min-height: 280px;
+  .center-card-wrapper .center-card {
+    min-height: 260px;
     padding: 32px 20px;
     border-radius: 20px;
 
@@ -3847,7 +3888,7 @@ defineExpose({
     }
   }
 
-  .start-btn-wrapper {
+  .center-card-wrapper .start-btn-wrapper {
     margin-top: 20px;
 
     .start-btn {
@@ -3955,11 +3996,14 @@ defineExpose({
 @media (max-width: 480px) {
   .opening-form {
     padding: 8px;
+    // 为右下角主题/设置与左下角清除编年史留出空间，避免与封面底栏重叠
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   }
 
   .book-container {
     height: 96vh;
     border-radius: 16px;
+    min-width: 0;
   }
 
   .cover-page {
@@ -3967,8 +4011,8 @@ defineExpose({
     padding: 20px 12px 12px;
   }
 
-  .center-card {
-    min-height: 240px;
+  .center-card-wrapper .center-card {
+    min-height: 220px;
     padding: 24px 16px;
     border-radius: 16px;
 
@@ -4013,7 +4057,7 @@ defineExpose({
     }
   }
 
-  .start-btn-wrapper {
+  .center-card-wrapper .start-btn-wrapper {
     margin-top: 16px;
 
     .btn-pulse-ring {
@@ -4028,12 +4072,17 @@ defineExpose({
   }
 
   .bottom-tools {
-    gap: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
 
     .tool-btn {
-      padding: 8px 14px;
+      padding: 10px 14px;
       font-size: 11px;
       gap: 6px;
+      flex: 0 0 auto;
+      max-width: 100%;
+      width: 100%;
 
       i {
         font-size: 12px;
@@ -4162,7 +4211,7 @@ defineExpose({
     padding: 16px 10px 10px;
   }
 
-  .center-card {
+  .center-card-wrapper .center-card {
     min-height: 200px;
     padding: 20px 12px;
 
@@ -4185,7 +4234,7 @@ defineExpose({
     }
   }
 
-  .start-btn-wrapper .start-btn {
+  .center-card-wrapper .start-btn-wrapper .start-btn {
     padding: 10px 24px;
     font-size: 13px;
   }
@@ -4202,18 +4251,20 @@ defineExpose({
 @media (max-width: 300px) {
   .opening-form {
     padding: 4px;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   }
 
   .book-container {
     border-radius: 10px;
     max-width: 100%;
+    min-width: 0;
   }
 
   .cover-page {
     padding: 12px 8px 8px;
   }
 
-  .center-card {
+  .center-card-wrapper .center-card {
     min-height: 180px;
     padding: 16px 10px;
 
@@ -4236,7 +4287,7 @@ defineExpose({
     }
   }
 
-  .start-btn-wrapper .start-btn {
+  .center-card-wrapper .start-btn-wrapper .start-btn {
     padding: 8px 18px;
     font-size: 12px;
   }
@@ -4267,7 +4318,7 @@ defineExpose({
     padding-bottom: 16px;
   }
 
-  .center-card {
+  .center-card-wrapper .center-card {
     min-height: auto;
     padding: 24px 20px;
 
@@ -4286,7 +4337,7 @@ defineExpose({
     }
   }
 
-  .start-btn-wrapper {
+  .center-card-wrapper .start-btn-wrapper {
     margin-top: 16px;
   }
 }
@@ -4309,7 +4360,7 @@ defineExpose({
     overflow-y: auto;
   }
 
-  .center-card {
+  .center-card-wrapper .center-card {
     padding: 20px 16px;
 
     .card-content {
@@ -4338,12 +4389,14 @@ defineExpose({
   // 底部工具栏横向排列
   .bottom-tools {
     flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow-x: visible;
     gap: 8px;
     padding-bottom: 8px;
 
     .tool-btn {
+      flex: 0 1 auto;
       flex-shrink: 0;
       padding: 6px 12px;
       font-size: 11px;
