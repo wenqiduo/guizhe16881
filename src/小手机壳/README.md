@@ -4,9 +4,7 @@
 
 ## 构建产物
 
-执行仓库根目录 `pnpm build` 后生成：
-
-- `dist/小手机壳/index.js`
+执行仓库根目录 **`pnpm build`** 会生成 webpack 各入口（含 **`dist/小手机壳/index.js`**），并在成功后自动构建并同步 **`dist/手机`**（见 `src/手机` README）。若只需壳脚本、不构建手机界面，可用 **`pnpm run build:webpack`**。
 
 在酒馆助手中将该脚本加入角色卡/全局脚本并启用。
 

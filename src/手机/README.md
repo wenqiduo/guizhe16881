@@ -14,13 +14,12 @@ npm run dev
 
 ## 生产构建与部署
 
-**推荐（与仓库根目录统一）：** 先在 `src/手机` 安装依赖一次（`npm install` 或 `pnpm install`），再在仓库根目录执行：
+**与仓库根目录统一：**
 
-```bash
-pnpm build:phone
-```
-
-会先构建 `src/手机`，再同步到 **`dist/手机/index.html`**（与 `dist/小手机壳` 等在同一层，便于整仓上传 GitHub 后填 `phone_ui_url`）。
+- 先在 `src/手机` 安装依赖一次（`npm install`）。
+- 在**仓库根目录**执行 **`pnpm build`** 会依次：**webpack**（更新 `dist/规则` 等）→ **`build:phone`**（构建并同步 **`dist/手机`**）。  
+  若只想打 webpack、不构建手机，用：**`pnpm run build:webpack`**。  
+  若只构建手机：**`pnpm build:phone`**。
 
 **仅构建在子目录：**
 

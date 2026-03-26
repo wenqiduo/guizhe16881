@@ -41,6 +41,11 @@ const APPS: AppConfig[] = [
   { id: 'settings', name: '设置', icon: <SettingsIcon size={34} color="white" strokeWidth={1.5} />, color: 'bg-[#8E8E93]', component: SettingsApp },
 ];
 
+/** 未实现完整功能的应用：显示「待更新」遮罩，微信与设置除外 */
+function isPlaceholderApp(id: AppId): boolean {
+  return id !== null && id !== 'wechat' && id !== 'settings';
+}
+
 export default function App() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeApp, setActiveApp] = useState<AppId>(null);
@@ -53,7 +58,9 @@ export default function App() {
 
   const timeString = currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
 
-  const ActiveAppComponent = APPS.find(app => app.id === activeApp)?.component;
+  const activeConfig = APPS.find(app => app.id === activeApp);
+  const ActiveAppComponent = activeConfig?.component;
+  const showPlaceholder = Boolean(activeApp && ActiveAppComponent && isPlaceholderApp(activeApp));
 
   return (
     <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-4 font-sans relative">
@@ -136,20 +143,45 @@ export default function App() {
                 animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, scale: 0.9, filter: 'blur(5px)' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
-                className="absolute inset-0 bg-white z-40 overflow-hidden flex flex-col rounded-[45px]"
+                className={`absolute inset-0 z-40 overflow-hidden flex flex-col rounded-[45px] ${showPlaceholder ? 'bg-neutral-100' : 'bg-white'}`}
               >
-                <ActiveAppComponent 
-                  onClose={() => setActiveApp(null)} 
-                  setWallpaper={activeApp === 'settings' ? setWallpaper : undefined}
-                />
-                
-                {/* App Home Indicator (Swipe up to close) */}
-                <div 
-                  className="absolute bottom-0 inset-x-0 h-8 flex items-end justify-center pb-1.5 cursor-pointer z-50 bg-gradient-to-t from-white/80 to-transparent"
-                  onClick={() => setActiveApp(null)}
-                >
-                  <div className="w-1/3 h-1 bg-black rounded-full"></div>
-                </div>
+                {showPlaceholder ? (
+                  <>
+                    {/* 底层：原应用界面虚化 */}
+                    <div className="absolute inset-0 overflow-hidden rounded-[45px]">
+                      <div className="h-full w-full origin-center scale-[1.06] blur-[10px] opacity-[0.88] pointer-events-none select-none">
+                        <ActiveAppComponent
+                          onClose={() => setActiveApp(null)}
+                          setWallpaper={undefined}
+                        />
+                      </div>
+                    </div>
+                    {/* 点击任意处返回桌面 */}
+                    <button
+                      type="button"
+                      className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center bg-white/25 backdrop-blur-[6px] border-0 p-0"
+                      onClick={() => setActiveApp(null)}
+                      aria-label="返回桌面"
+                    >
+                      <span className="pointer-events-none rounded-lg bg-red-600 px-8 py-3 text-center text-[15px] font-semibold tracking-wide text-white shadow-lg">
+                        待更新中.....
+                      </span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <ActiveAppComponent
+                      onClose={() => setActiveApp(null)}
+                      setWallpaper={activeApp === 'settings' ? setWallpaper : undefined}
+                    />
+                    <div
+                      className="absolute bottom-0 inset-x-0 z-50 flex h-8 cursor-pointer items-end justify-center bg-gradient-to-t from-white/80 to-transparent pb-1.5"
+                      onClick={() => setActiveApp(null)}
+                    >
+                      <div className="h-1 w-1/3 rounded-full bg-black" />
+                    </div>
+                  </>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
