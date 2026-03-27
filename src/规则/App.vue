@@ -1474,6 +1474,8 @@ const modalTitles: Record<string, string> = {
   edit_character_mind: '编辑心理状态',
   edit_character_fetish: '编辑性癖与敏感带',
   edit_avatar: '编辑角色头像',
+  edit_character_clothing: '编辑服饰状态',
+  edit_character_body_toys: '编辑身体道具状态',
 };
 const modalTitle = computed(() => modalTitles[modalType.value] || (modalType.value.includes('add') ? '新增条目' : '编辑条目'));
 
