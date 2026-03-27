@@ -70,6 +70,8 @@ export function useCharacters() {
         sensitiveParts,
         hiddenFetish,
         currentPhysiologicalDesc: char.当前综合生理描述 || char.currentPhysiologicalDesc || '',
+        服饰: (char.服饰 as any) || {},
+        身体道具: (char.身体道具 as any) || {},
       };
     });
   });
