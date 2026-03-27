@@ -206,6 +206,38 @@
       </article>
     </div>
 
+    <!-- 服饰状态 -->
+      <article class="detail-card">
+        <div class="card-title">
+          <i class="fa-solid fa-shirt"></i>
+          <h3>服饰状态</h3>
+          <button type="button" class="edit-mini-btn" @click="$emit('openModal', 'edit_character_clothing', { characterId })">编辑</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div v-for="slot in ['手部','上衣','下衣','腿足','内裤']" :key="slot" style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-size:12px; color:#71717a; width:32px; flex-shrink:0;">{{ slot }}</span>
+            <span style="flex:1; font-size:13px; color:#d4d4d8;">{{ (displayClothing[slot] as any)?.名称 || '无' }}</span>
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:rgba(113,113,122,0.15); color:#71717a;">{{ (displayClothing[slot] as any)?.状态 || '—' }}</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 身体道具 -->
+      <article class="detail-card">
+        <div class="card-title">
+          <i class="fa-solid fa-link"></i>
+          <h3>身体道具</h3>
+          <button type="button" class="edit-mini-btn" @click="$emit('openModal', 'edit_character_body_toys', { characterId })">编辑</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div v-for="slot in ['乳头','阴蒂','阴阜','尿道','阴道','肛门']" :key="slot" style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-size:12px; color:#71717a; width:32px; flex-shrink:0;">{{ slot }}</span>
+            <span style="flex:1; font-size:13px; color:#d4d4d8;">{{ (displayBodyToys[slot] as any)?.道具名称 || '无' }}</span>
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:rgba(113,113,122,0.15); color:#71717a;">{{ (displayBodyToys[slot] as any)?.状态 || '—' }}</span>
+          </div>
+        </div>
+      </article>
+
     <!-- Affected Rules -->
     <article class="rules-card">
       <div class="rules-header">
