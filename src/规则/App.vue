@@ -6734,6 +6734,8 @@ body.has-dragging-fab {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto;
+  max-height: 65vh;padding-right: 4px;
 }
 
 .avatar-file-input {
