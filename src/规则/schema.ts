@@ -4,7 +4,7 @@
  */
 
 // 规则条目定义（世界规则、区域规则、个人规则共用）
-const规则条目基础= z.object({
+const 规则条目基础 = z.object({
   名称: z.string().prefault(''),
   效果描述: z.string().prefault(''),
   状态: z.enum(['生效中', '已归档']).or(z.string()).prefault('生效中'),
