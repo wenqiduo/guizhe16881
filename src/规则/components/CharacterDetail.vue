@@ -216,7 +216,7 @@
         <div style="display:flex; flex-direction:column; gap:8px;">
           <div v-for="slot in ['手部','上衣','下衣','腿足','内裤']" :key="slot" style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
             <span style="font-size:12px; color:#71717a; width:32px; flex-shrink:0;">{{ slot }}</span>
-            <span style="flex:1; font-size:13px; color:#d4d4d8;">{{ (displayClothing[slot] as any)?.名称 || '无' }}</span>
+            <span style="flex:1; font-size:13px; color:#d4d4d8;">{{ displayClothing[slot]?.名称 || '无' }}</span>
             <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:rgba(113,113,122,0.15); color:#71717a;">{{ (displayClothing[slot] as any)?.状态 || '—' }}</span>
           </div>
         </div>
