@@ -1645,7 +1645,21 @@ async function openModal(type: string, payload?: Record<string, any>) {
     },
   };
 
-  if (type === 'edit_avatar' && payload?.characterId) {
+    if ((type === 'edit_character_clothing' || type === 'edit_character_body_toys') && payload?.characterId) {
+    try {
+      const store = useDataStore();
+      const raw = store.data.角色档案?.[payload.characterId] as any;
+      if (type === 'edit_character_clothing' && raw?.服饰) {
+        modalForm.value.clothing = raw.服饰;
+      }
+      if (type === 'edit_character_body_toys' && raw?.身体道具) {
+        modalForm.value.bodyToys = raw.身体道具;
+      }
+    } catch (e) {
+      console.warn('预填服饰/道具失败', e);
+    }
+  }
+    if (type === 'edit_avatar' && payload?.characterId) {
     try {
       const store = useDataStore();
       const raw = store.data.角色档案?.[payload.characterId] as Record<string, unknown> | undefined;
