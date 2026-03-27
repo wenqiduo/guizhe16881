@@ -137,6 +137,205 @@
                       }
                     }
                   },
+                  "服饰": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "手部": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "上衣": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "下衣": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "腿足": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "内裤": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "身体道具": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "乳头": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "道具名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "阴蒂": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "道具名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "阴阜": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "道具名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "尿道": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "道具名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "阴道": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "道具名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "肛门": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "道具名称": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "状态": {
+                            "default": "无",
+                            "type": "string"
+                          },
+                          "描述": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
                   "当前综合生理描述": {
                     "type": "string"
                   }
@@ -177,7 +376,7 @@
               "type": "number"
             },
             "最近更新时间": {
-              "default": 1774525927874,
+              "default": 1774619066664,
               "type": "number"
             }
           }
