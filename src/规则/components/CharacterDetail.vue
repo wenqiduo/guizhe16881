@@ -380,6 +380,8 @@ const displayPhysiologicalDesc = computed(() => {
   if (typeof v === 'string' && v.trim().length > 0) return v;
   return '暂无（由剧情与数值跨阶变化时更新）';
 });
+const displayClothing = computed(() => (currentExtra.value as any).服饰 || {});
+const displayBodyToys = computed(() => (currentExtra.value as any).身体道具 || {});
 const characterStatusText = ref('出场中');
 
 const allPersonalRules = usePersonalRules();
