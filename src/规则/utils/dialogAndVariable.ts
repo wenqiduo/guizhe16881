@@ -795,3 +795,73 @@ export async function submitRestorePersonalRule(idOrTitle: string, characterName
   restorePersonalRuleInVariables(idOrTitle);
   toastr.success(`已复原「${label}」${ruleSummary ? `（${ruleSummary}）` : ''}并写入对话框`);
 }
+// ========== 服饰状态 ==========
+
+const CLOTHING_SLOTS = ['手部', '上衣', '下衣', '腿足', '内裤'] as const;
+
+export function formatEditClothingMessage(characterId: string, 服饰: Record<string, any>): string {
+  const lines = ['[编辑角色服饰状态]', `角色ID：${characterId}`];
+  for (const slot of CLOTHING_SLOTS) {
+    const item = 服饰[slot];
+    if (!item) continue;
+    lines.push(`${slot}：${item.名称}（${item.状态}）${item.描述? ' — ' + item.描述 : ''}`);
+  }
+  return lines.join('\n');
+}
+
+export function updateClothingInVariables(characterId: string, 服饰: Record<string, any>): void {
+  const store = useDataStore();
+  const char = store.data.角色档案[characterId] as Record<string, any>;
+  if (!char) return;
+  if (!char.服饰) char.服饰 = {};
+  for (const slot of CLOTHING_SLOTS) {
+    if (!服饰[slot]) continue;
+    char.服饰[slot] = {
+      名称: String(服饰[slot].名称 ?? '无'),
+      状态: String(服饰[slot].状态 ?? '无'),
+      描述: String(服饰[slot].描述 ?? ''),
+    };
+  }bumpUpdateTime();
+}
+
+export async function submitEditCharacterClothing(characterId: string, 服饰: Record<string, any>): Promise<string> {
+  const message = formatEditClothingMessage(characterId, 服饰);
+  updateClothingInVariables(characterId, 服饰);
+  return message;
+}
+
+// ========== 身体道具 ==========
+
+const BODY_TOY_SLOTS = ['乳头', '阴蒂', '阴阜', '尿道', '阴道', '肛门'] as const;
+
+export function formatEditBodyToysMessage(characterId: string, 身体道具: Record<string, any>): string {
+  const lines = ['[编辑角色身体道具]', `角色ID：${characterId}`];
+  for (const slot of BODY_TOY_SLOTS) {
+    const item = 身体道具[slot];
+    if (!item) continue;
+    lines.push(`${slot}：${item.道具名称}（${item.状态}）${item.描述 ? ' — ' + item.描述 : ''}`);
+  }
+  return lines.join('\n');
+}
+
+export function updateBodyToysInVariables(characterId: string, 身体道具: Record<string, any>): void {
+  const store = useDataStore();
+  const char = store.data.角色档案[characterId] as Record<string, any>;
+  if (!char) return;
+  if (!char.身体道具) char.身体道具 = {};
+  for (const slot of BODY_TOY_SLOTS) {
+    if (!身体道具[slot]) continue;
+    char.身体道具[slot] = {
+      道具名称: String(身体道具[slot].道具名称 ?? '无'),
+      状态: String(身体道具[slot].状态 ?? '无'),
+      描述: String(身体道具[slot].描述 ?? ''),
+    };
+  }
+  bumpUpdateTime();
+}
+
+export async function submitEditCharacterBodyToys(characterId: string, 身体道具: Record<string, any>): Promise<string> {
+  const message = formatEditBodyToysMessage(characterId, 身体道具);
+  updateBodyToysInVariables(characterId, 身体道具);
+  return message;
+}
