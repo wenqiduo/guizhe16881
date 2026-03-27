@@ -436,6 +436,8 @@ onMounted(() => {
         sensitiveParts: (current as any).sensitiveParts,
         hiddenFetish: (current as any).hiddenFetish,
         physiologicalDesc: (current as any).currentPhysiologicalDesc,
+        服饰: (current as any).服饰 || {},
+        身体道具: (current as any).身体道具 || {},
       };
       characterStatusText.value = (current as any).status === 'active' ? '出场中' : '暂时退场';
 
