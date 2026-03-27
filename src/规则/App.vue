@@ -1628,6 +1628,21 @@ async function openModal(type: string, payload?: Record<string, any>) {
     characterPsychSensitiveParts: '',
     characterPsychHiddenFetish: '',
     avatarUrl: '',
+    clothing: {
+      手部: { 名称: '无', 状态: '无', 描述: '' },
+      上衣: { 名称: '无', 状态: '无', 描述: '' },
+      下衣: { 名称: '无', 状态: '无', 描述: '' },
+      腿足: { 名称: '无', 状态: '无', 描述: '' },
+      内裤: { 名称: '无', 状态: '无', 描述: '' },
+    },
+    bodyToys: {
+      乳头: { 道具名称: '无', 状态: '无', 描述: '' },
+      阴蒂: { 道具名称: '无', 状态: '无', 描述: '' },
+      阴阜: { 道具名称: '无', 状态: '无', 描述: '' },
+      尿道: { 道具名称: '无', 状态: '无', 描述: '' },
+      阴道: { 道具名称: '无', 状态: '无', 描述: '' },
+      肛门: { 道具名称: '无', 状态: '无', 描述: '' },
+    },
   };
 
   if (type === 'edit_avatar' && payload?.characterId) {
