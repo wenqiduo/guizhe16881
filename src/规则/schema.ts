@@ -1,10 +1,10 @@
 /**
- * ZOD Schema 定义
+ * ZOD Schema定义
  * 与角色卡变量结构保持一致
  */
 
 // 规则条目定义（世界规则、区域规则、个人规则共用）
-const 规则条目基础 = z.object({
+const规则条目基础= z.object({
   名称: z.string().prefault(''),
   效果描述: z.string().prefault(''),
   状态: z.enum(['生效中', '已归档']).or(z.string()).prefault('生效中'),
@@ -18,22 +18,18 @@ const 规则条目基础 = z.object({
   适用对象: z.string().prefault(''),
   标记: z.string().prefault(''),
 });
-// 使用 intersection 保留额外字段（如 name、desc、active 等英文字段）
 const 规则条目 = z.intersection(规则条目基础, z.record(z.string(), z.unknown())).prefault({});
 
 // 核心数据结构
 const 核心结构 = z.object({
-  世界规则: z.record(z.string(), 规则条目).prefault({}),
-
+  世界规则: z.record(z.string(),规则条目).prefault({}),
   区域规则: z.record(z.string(), 规则条目).prefault({}),
-
   个人规则: z.record(z.string(), 规则条目).prefault({}),
 
   角色档案: z.record(
     z.string(),
     z.intersection(
-      z.object({
-        姓名: z.string().prefault('未知'),
+      z.object({姓名: z.string().prefault('未知'),
         状态: z.enum(['出场中', '暂时退场']).or(z.string()).prefault('出场中'),
         描写: z.string().prefault(''),
 
@@ -57,9 +53,70 @@ const 核心结构 = z.object({
           发情值: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(0),
         }).prefault({}),
 
+        服饰: z.object({
+          手部: z.object({
+            名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          上衣: z.object({
+            名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          下衣: z.object({
+            名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          腿足: z.object({
+            名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          内裤: z.object({
+            名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+        }).prefault({}),
+
+        身体道具: z.object({
+          乳头: z.object({
+            道具名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          阴蒂: z.object({
+            道具名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          阴阜: z.object({
+            道具名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          尿道: z.object({
+            道具名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          阴道: z.object({
+            道具名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+          肛门: z.object({
+            道具名称: z.string().prefault('无'),
+            状态: z.string().prefault('无'),
+            描述: z.string().prefault(''),
+          }).prefault({}),
+        }).prefault({}),
+
         当前综合生理描述: z.string().prefault(''),
       }),
-      z.record(z.string(), z.unknown()) // 保留额外字段（name、Affection、Estrus 等英文字段）
+      z.record(z.string(), z.unknown())
     ).prefault({})
   ).prefault({}),
 
@@ -74,7 +131,6 @@ const 核心结构 = z.object({
   游戏状态: z.record(z.string(), z.unknown()).prefault({}),
 }).prefault({});
 
-// 利用 intersection 兜底所有未知的宿主字段，确保 App 注入的 meta/player 等数据不被吞噬
 export const Schema = z.intersection(
   核心结构,
   z.record(z.string(), z.unknown())
