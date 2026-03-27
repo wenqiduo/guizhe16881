@@ -1741,6 +1741,12 @@ async function onModalComplete() {
         sensitivePartsText: form.characterPsychSensitiveParts,
         hiddenFetish: form.characterPsychHiddenFetish,
       });
+    } else if (type === 'edit_character_clothing' && payload?.characterId) {
+      const { submitEditCharacterClothing } = await import('./utils/dialogAndVariable');
+      messageText = await submitEditCharacterClothing(payload.characterId, form.clothing);
+    } else if (type === 'edit_character_body_toys' && payload?.characterId) {
+      const { submitEditCharacterBodyToys } = await import('./utils/dialogAndVariable');
+      messageText = await submitEditCharacterBodyToys(payload.characterId, form.bodyToys);
     } else if (type === 'edit_avatar' && payload?.characterId) {
       const { submitEditCharacterAvatar } = await import('./utils/dialogAndVariable');
       messageText = await submitEditCharacterAvatar(payload.characterId, form.avatarUrl);
