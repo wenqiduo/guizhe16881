@@ -579,6 +579,54 @@
                 placeholder="输入隐藏性癖描述..."
               />
             </div>
+            <div v-else-if="modalType === 'edit_character_clothing'" class="rule-form">
+              <div v-for="slot in ['手部','上衣','下衣','腿足','内裤']" :key="slot" style="margin-bottom:16px; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="font-size:13px; font-weight:600; color:#a1a1aa; margin-bottom:8px;">{{ slot }}</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
+                  <div>
+                    <label class="form-label">名称</label>
+                    <input v-model="modalForm.clothing[slot].名称" type="text" class="form-input" placeholder="如：白色蕾丝内衣" />
+                  </div>
+                  <div>
+                    <label class="form-label">状态</label>
+                    <select v-model="modalForm.clothing[slot].状态" class="form-input">
+                      <option value="无">无</option>
+                      <option value="穿着">穿着</option>
+                      <option value="脱下">脱下</option>
+                      <option value="撕破">撕破</option>
+                      <option value="弄湿">弄湿</option>
+                    </select>
+                  </div>
+                </div><div>
+                  <label class="form-label">描述（可选）</label>
+                  <input v-model="modalForm.clothing[slot].描述" type="text" class="form-input" placeholder="如：半透明蕾丝" />
+                </div>
+              </div>
+            </div>
+            <!-- 编辑身体道具 -->
+            <div v-else-if="modalType === 'edit_character_body_toys'" class="rule-form">
+              <div v-for="slot in ['乳头','阴蒂','阴阜','尿道','阴道','肛门']" :key="slot" style="margin-bottom:16px; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="font-size:13px; font-weight:600; color:#a1a1aa; margin-bottom:8px;">{{ slot }}</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
+                  <div>
+                    <label class="form-label">道具名称</label>
+                    <input v-model="modalForm.bodyToys[slot].道具名称" type="text" class="form-input" placeholder="如：金属乳头环" />
+                  </div>
+                  <div>
+                    <label class="form-label">状态</label>
+                    <select v-model="modalForm.bodyToys[slot].状态" class="form-input">
+                      <option value="无">无</option>
+                      <option value="佩戴中">佩戴中</option>
+                      <option value="未佩戴">未佩戴</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label">描述（可选）</label>
+                  <input v-model="modalForm.bodyToys[slot].描述" type="text" class="form-input" placeholder="如：金色，直径10mm" />
+                </div>
+              </div>
+            </div>
             <div v-else-if="modalType === 'edit_avatar'" class="rule-form edit-avatar-form">
               <label class="form-label">本地上传</label>
               <input
